@@ -1,0 +1,12 @@
+{
+  "overrides": [
+    {
+      "files": "*.yaml",
+      "options": {
+        "singleQuote": false,
+        "bracketSpacing": false,
+        "proseWrap": "preserve"
+      }
+    }
+  ]
+}

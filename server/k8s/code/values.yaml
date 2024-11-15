@@ -1,0 +1,10 @@
+replicaCount: 1
+image:
+  name: compiler
+  repository: 637423273026.dkr.ecr.ap-south-1.amazonaws.com/code-compiler
+  tag: latest
+  pullPolicy: Always
+service:
+  port: 8000
+  targetPort: 8000
+  type: LoadBalancer

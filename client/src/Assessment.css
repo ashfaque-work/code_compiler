@@ -1,0 +1,100 @@
+/* Assessment.css */
+
+.header {
+  background-color: #002244;
+  color: white;
+  padding: 15px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.container {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+}
+
+.problem-description {
+  flex: 1;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 5px;
+}
+
+.editor-container {
+  display: flex;
+  gap: 20px;
+  flex: 2;
+}
+
+.editor-panel,
+.test-cases-panel {
+  flex: 1;
+}
+
+.card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.code-editor {
+  width: 100%;
+  font-family: monospace;
+}
+
+.test-cases-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.test-cases-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.test-case-tab {
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.add-test-case-button {
+  padding: 5px;
+  cursor: pointer;
+  background-color: #28a745;
+  color: white;
+  border: none;
+}
+
+.test-case-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.test-case-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.result-box {
+  background-color: #f1f1f1;
+  padding: 5px;
+}

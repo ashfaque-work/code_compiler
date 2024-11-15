@@ -1,0 +1,26 @@
+{
+  "name": "code-runner",
+  "version": "1.0.0",
+  "description": "A server to compile and run code snippets in various languages.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "bull": "^4.16.3",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "temp": "^0.9.4"
+  },
+  "devDependencies": {
+    "clang-format": "^1.8.0",
+    "prettier": "^3.2.5"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "author": "Skill Wiz",
+  "license": "ISC"
+}
