@@ -3,28 +3,33 @@
 /*
  * Petrol instrument panel.
  *
- * Committed to a single dark treatment rather than a theme toggle: this is a
- * measurement surface, and the palette carries six status hues that were tuned
- * against this ground. A light variant would need all six re-picked, and a
- * half-tuned second theme is worse than one deliberate one.
+ * Committed to a single dark treatment: this is a measurement surface, and the
+ * six status hues were tuned against this ground. Depth comes from layered
+ * surfaces and hairline top-highlights rather than drop shadows, which read as
+ * grey smudges on a dark ground.
  */
 @theme {
-  --color-ground: #0c1519;
-  --color-surface: #12222a;
-  --color-raised: #1a2f38;
-  --color-line: #24404a;
-  --color-ink: #e8f1f3;
-  --color-muted: #86a2ab;
-  --color-action: #45c8dc;
+  --color-ground: #081216;
+  --color-surface: #0d1b21;
+  --color-raised: #14272e;
+  --color-line: #1c353d;
+  --color-line-soft: #132831;
+
+  --color-ink: #eaf3f5;
+  --color-dim: #a3bdc4;
+  --color-muted: #6b8891;
+
+  --color-action: #4fd6e8;
+  --color-action-deep: #1d8fa3;
 
   /* One hue per execution status. The taxonomy is the content, so the
      palette is content-driven rather than decorative. */
   --color-status-success: #4fd1a5;
-  --color-status-compile: #ff8a6b;
-  --color-status-runtime: #ff6b8a;
-  --color-status-time: #f2a93b;
+  --color-status-compile: #ff9670;
+  --color-status-runtime: #ff6f8f;
+  --color-status-time: #f5b344;
   --color-status-memory: #c79bff;
-  --color-status-internal: #86a2ab;
+  --color-status-internal: #7f9aa3;
 
   --font-sans: "IBM Plex Sans Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
@@ -41,13 +46,66 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* Keyboard focus stays visible everywhere; the action hue doubles as the
-   focus colour so it reads consistently. */
+/* A single wide pool of light behind the working surface. Keeps the ground
+   from reading as flat near-black without becoming decoration. */
+.app-ground {
+  background-image: radial-gradient(
+    120% 80% at 50% -20%,
+    #12262e 0%,
+    transparent 60%
+  );
+}
+
+/* Hairline along the top edge, the way light catches a raised panel. Cheaper
+   and cleaner than a shadow on a dark ground. */
+.lift {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
+}
+
+/* Fine grid, used only where the panel would otherwise be empty. */
+.grid-field {
+  background-image:
+    linear-gradient(var(--color-line-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-line-soft) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: center;
+  mask-image: radial-gradient(70% 60% at 50% 45%, #000 0%, transparent 100%);
+}
+
+/* Status dots carry a faint halo of their own colour, so the six hues read
+   clearly at 6px without becoming loud. */
+.dot {
+  box-shadow: 0 0 14px -1px currentColor;
+}
+
 :focus-visible {
   outline: 2px solid var(--color-action);
   outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Native select chrome looks pasted-in; this restores the arrow on our terms. */
+.field {
+  appearance: none;
+  background-image: linear-gradient(
+      45deg,
+      transparent 50%,
+      var(--color-muted) 50%
+    ),
+    linear-gradient(135deg, var(--color-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 15px) calc(50% + 1px),
+    calc(100% - 10px) calc(50% + 1px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.field:hover {
+  background-image: linear-gradient(45deg, transparent 50%, var(--color-ink) 50%),
+    linear-gradient(135deg, var(--color-ink) 50%, transparent 50%);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -64,7 +122,7 @@ body {
 @keyframes result-in {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -73,7 +131,32 @@ body {
 }
 
 .result-enter {
-  animation: result-in 220ms ease-out;
+  animation: result-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes gauge-fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.gauge-bar {
+  transform-origin: left;
+  animation: gauge-fill 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.pulse-soft {
+  animation: pulse-soft 1.4s ease-in-out infinite;
 }
 
 ::-webkit-scrollbar {
@@ -82,10 +165,15 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-ground);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--color-line);
   border-radius: 999px;
+  border: 2px solid var(--color-ground);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-raised);
 }

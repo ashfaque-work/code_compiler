@@ -10,7 +10,7 @@ import {
 import { isBusy, useSubmission } from "../hooks/useSubmission.js";
 import { Editor } from "../components/Editor.js";
 import { TestResults } from "../components/TestResults.js";
-import { Shell } from "../components/Shell.js";
+import { LanguageSelect, RunButton, Shell } from "../components/Shell.js";
 import { NotFound } from "./NotFound.js";
 
 type Load =
@@ -80,32 +80,21 @@ export function ProblemPage() {
       actions={
         problem ? (
           <>
-            <label className="sr-only" htmlFor="language">
-              Language
-            </label>
-            <select
-              id="language"
+            <LanguageSelect
               value={language}
-              onChange={(event) =>
-                switchLanguage(event.target.value as LanguageId)
-              }
-              className="rounded-md border border-line bg-surface px-2.5 py-1.5 text-sm text-ink"
-            >
-              {LANGUAGES.map((id) => (
-                <option key={id} value={id}>
-                  {LANGUAGE_DISPLAY_NAMES[id]}
-                </option>
-              ))}
-            </select>
-
-            <button
-              type="button"
+              onChange={(next) => switchLanguage(next as LanguageId)}
+              options={LANGUAGES.map((id) => ({
+                id,
+                label: LANGUAGE_DISPLAY_NAMES[id],
+              }))}
+            />
+            <RunButton
               onClick={handleSubmit}
+              busy={busy}
               disabled={busy || code.trim() === ""}
-              className="rounded-md bg-action px-3.5 py-1.5 text-sm font-medium text-ground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {busy ? "Checking" : "Submit"}
-            </button>
+              label="Submit"
+              busyLabel="Checking"
+            />
           </>
         ) : undefined
       }
@@ -124,22 +113,22 @@ export function ProblemPage() {
       )}
 
       {problem && (
-        <div className="grid h-full min-h-0 grid-cols-1 lg:grid-cols-[1fr_1.1fr]">
-          <section className="min-h-0 overflow-auto border-line px-6 py-6 lg:border-r">
-            <h1 className="text-lg text-ink">{problem.title}</h1>
-            <p className="mt-3 max-w-[62ch] text-sm leading-relaxed text-muted">
+        <div className="grid h-full min-h-0 grid-cols-1 min-[900px]:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+          <section className="min-h-0 overflow-auto border-line-soft px-6 py-6 min-[900px]:border-r">
+            <h1 className="text-xl text-ink">{problem.title}</h1>
+            <p className="mt-3 max-w-[62ch] text-sm leading-relaxed text-dim">
               {problem.statement}
             </p>
 
             <Contract title="Input" body={problem.inputContract} />
             <Contract title="Output" body={problem.outputContract} />
 
-            <h2 className="mt-6 text-sm text-ink">Examples</h2>
-            <ul className="mt-2 grid gap-2">
+            <h2 className="mt-7 text-sm text-ink">Examples</h2>
+            <ul className="mt-3 grid gap-2">
               {problem.examples.map((example, index) => (
                 <li
                   key={index}
-                  className="grid gap-1 rounded-md border border-line bg-surface p-3 font-mono text-xs"
+                  className="lift grid gap-1 rounded-lg border border-line-soft bg-surface/60 p-3 font-mono text-xs"
                 >
                   <Pair label="in" value={example.input} />
                   <Pair label="out" value={example.expectedOutput} />
@@ -153,7 +142,7 @@ export function ProblemPage() {
               <Editor language={language} value={code} onChange={setCode} />
             </div>
 
-            <div className="max-h-[45%] min-h-0 shrink-0 overflow-auto border-t border-line">
+            <div className="max-h-[45%] min-h-0 shrink-0 overflow-auto border-t border-line-soft">
               <Verdict state={state} visibleCount={problem.examples.length} />
             </div>
           </section>
@@ -226,7 +215,7 @@ function Contract({
   readonly body: string;
 }) {
   return (
-    <div className="mt-5">
+    <div className="mt-6">
       <h2 className="text-sm text-ink">{title}</h2>
       <p className="mt-1 font-mono text-xs leading-relaxed whitespace-pre-wrap text-muted">
         {body}

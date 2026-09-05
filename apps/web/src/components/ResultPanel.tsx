@@ -15,15 +15,42 @@ export function ResultPanel({ state }: { readonly state: RunState }) {
   return <Finished result={state.result} />;
 }
 
-/** An empty panel is an invitation to act, not a shrug. */
+/** What every submission is given. Constraints, stated as a spec. */
+const SANDBOX_SPEC = [
+  ["Network", "none"],
+  ["Wall clock", "5 s"],
+  ["Memory", "256 MB"],
+  ["Processes", "64"],
+  ["Filesystem", "read-only"],
+  ["User", "non-root"],
+] as const;
+
+/**
+ * An empty panel is an invitation, not a shrug.
+ *
+ * This is the largest surface on the page before a run, so it carries the one
+ * thing worth saying about the project: what the container actually enforces.
+ */
 function Empty() {
   return (
-    <div className="flex h-full flex-col justify-center px-6 py-10 text-center">
-      <p className="text-ink">Nothing has run yet</p>
-      <p className="mx-auto mt-2 max-w-[42ch] text-sm leading-relaxed text-muted">
-        Write something on the left and run it. Each run gets its own container
-        with no network, a 5 second limit and 256 MB of memory.
+    <div className="grid-field flex h-full flex-col items-center justify-center px-6 py-10">
+      <p className="text-[15px] text-ink">Nothing has run yet</p>
+      <p className="mt-2 max-w-[38ch] text-center text-[13px] leading-relaxed text-muted">
+        Write something on the left and run it. Every run gets its own
+        single-use container.
       </p>
+
+      <dl className="mt-8 w-full max-w-xs divide-y divide-line-soft rounded-lg border border-line-soft bg-surface/50">
+        {SANDBOX_SPEC.map(([label, value]) => (
+          <div
+            key={label}
+            className="flex items-baseline justify-between px-4 py-2"
+          >
+            <dt className="text-[13px] text-muted">{label}</dt>
+            <dd className="font-mono text-[13px] text-dim">{value}</dd>
+          </div>
+        ))}
+      </dl>
     </div>
   );
 }
@@ -37,11 +64,9 @@ function Progress({ phase }: { readonly phase: string }) {
         : "Running";
 
   return (
-    <div className="flex h-full flex-col justify-center px-6 text-center">
-      <div className="mx-auto flex items-center gap-2.5">
-        <span className="size-2 animate-pulse rounded-full bg-action" />
-        <span className="text-sm text-ink">{copy}</span>
-      </div>
+    <div className="flex h-full flex-col items-center justify-center gap-3 px-6">
+      <span className="dot size-2 rounded-full bg-action pulse-soft" />
+      <span className="text-sm text-dim">{copy}</span>
     </div>
   );
 }
@@ -51,10 +76,10 @@ function Failure({ message }: { readonly message: string }) {
   return (
     <div className="result-enter px-6 py-6">
       <div className="flex items-center gap-2.5">
-        <span className="size-2 rounded-full bg-status-internal" />
-        <h2 className="text-ink">Could not run</h2>
+        <span className="dot size-2 rounded-full bg-status-internal" />
+        <h2 className="text-[15px] text-ink">Could not run</h2>
       </div>
-      <p className="mt-2 max-w-[52ch] text-sm leading-relaxed text-muted">
+      <p className="mt-2 max-w-[52ch] text-[13px] leading-relaxed text-muted">
         {message}
       </p>
     </div>
@@ -64,25 +89,38 @@ function Failure({ message }: { readonly message: string }) {
 function Finished({ result }: { readonly result: ExecutionResult }) {
   const meta = statusMeta(result.status);
   const body = result.stdout || result.stderr || result.compileOutput;
+  const streamLabel = result.stdout
+    ? "stdout"
+    : result.stderr
+      ? "stderr"
+      : "compiler";
 
   return (
     <div className="result-enter flex h-full flex-col">
-      <header className={`border-b ${meta.borderClass} px-6 py-5`}>
+      <header className="relative border-b border-line-soft px-6 py-5">
+        {/* A thin bar in the status hue, so the verdict is legible before
+            any text is read. */}
+        <span
+          className={`absolute inset-x-0 top-0 h-px ${meta.dotClass}`}
+          aria-hidden
+        />
         <div className="flex items-center gap-2.5">
-          <span className={`size-2 rounded-full ${meta.dotClass}`} />
-          <h2 className={`font-medium ${meta.textClass}`}>{meta.label}</h2>
+          <span className={`dot size-2 rounded-full ${meta.dotClass}`} />
+          <h2 className={`text-[15px] font-medium ${meta.textClass}`}>
+            {meta.label}
+          </h2>
           {result.exitCode !== null && (
-            <span className="ml-auto font-mono text-xs text-muted">
+            <span className="ml-auto rounded-md border border-line-soft bg-surface px-2 py-0.5 font-mono text-[11px] text-muted">
               exit {result.exitCode}
             </span>
           )}
         </div>
-        <p className="mt-2 max-w-[52ch] text-sm leading-relaxed text-muted">
+        <p className="mt-2 max-w-[52ch] text-[13px] leading-relaxed text-muted">
           {meta.detail}
         </p>
       </header>
 
-      <div className="grid gap-4 border-b border-line px-6 py-5">
+      <div className="grid gap-5 border-b border-line-soft px-6 py-5">
         <Gauge
           label="Time"
           value={result.usage.wallTimeMs}
@@ -90,6 +128,7 @@ function Finished({ result }: { readonly result: ExecutionResult }) {
           formatted={formatDuration(result.usage.wallTimeMs)}
           limitLabel="5 s"
           barClass="bg-status-time"
+          textClass="text-status-time"
         />
         <Gauge
           label="Memory"
@@ -98,9 +137,10 @@ function Finished({ result }: { readonly result: ExecutionResult }) {
           formatted={formatBytes(result.usage.memoryBytes)}
           limitLabel="256 MB"
           barClass="bg-status-memory"
+          textClass="text-status-memory"
         />
         {result.usage.memoryBytes === null && (
-          <p className="-mt-1 text-xs leading-relaxed text-muted">
+          <p className="-mt-2 text-[12px] leading-relaxed text-muted">
             The run finished before a memory sample was taken.
           </p>
         )}
@@ -108,11 +148,19 @@ function Finished({ result }: { readonly result: ExecutionResult }) {
 
       <div className="min-h-0 flex-1 overflow-auto px-6 py-5">
         {body ? (
-          <pre className="font-mono text-sm leading-relaxed whitespace-pre-wrap text-ink">
-            {body}
-          </pre>
+          <>
+            <div className="mb-2 flex items-center gap-2">
+              <span className="font-mono text-[11px] text-muted">
+                {streamLabel}
+              </span>
+              <span className="h-px flex-1 bg-line-soft" />
+            </div>
+            <pre className="lift overflow-x-auto rounded-lg border border-line-soft bg-surface/60 p-4 font-mono text-[13px] leading-relaxed whitespace-pre-wrap text-dim">
+              {body}
+            </pre>
+          </>
         ) : (
-          <p className="text-sm text-muted">The program printed nothing.</p>
+          <p className="text-[13px] text-muted">The program printed nothing.</p>
         )}
       </div>
     </div>

@@ -7,6 +7,7 @@ interface GaugeProps {
   readonly formatted: string;
   readonly limitLabel: string;
   readonly barClass: string;
+  readonly textClass: string;
 }
 
 /**
@@ -23,6 +24,7 @@ export function Gauge({
   formatted,
   limitLabel,
   barClass,
+  textClass,
 }: GaugeProps) {
   const pct = percentOfLimit(value, limit);
   const unknown = value === null;
@@ -30,15 +32,15 @@ export function Gauge({
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3">
-        <span className="text-sm text-muted">{label}</span>
-        <span className="font-mono text-sm tabular-nums text-ink">
-          {formatted}
+        <span className="text-[13px] text-muted">{label}</span>
+        <span className="font-mono text-[13px] tabular-nums">
+          <span className={unknown ? "text-muted" : textClass}>{formatted}</span>
           <span className="text-muted"> / {limitLabel}</span>
         </span>
       </div>
 
       <div
-        className="mt-2 h-1.5 overflow-hidden rounded-full bg-line"
+        className="relative mt-2 h-1.5 overflow-hidden rounded-full bg-line-soft"
         role="meter"
         aria-label={`${label}: ${formatted} of ${limitLabel}`}
         aria-valuenow={unknown ? undefined : Math.round(pct)}
@@ -47,13 +49,20 @@ export function Gauge({
       >
         {unknown ? (
           // Not measured is a distinct state from measured-as-zero.
-          <div className="h-full w-full bg-[repeating-linear-gradient(115deg,transparent,transparent_5px,var(--color-line)_5px,var(--color-line)_10px)]" />
+          <div className="h-full w-full bg-[repeating-linear-gradient(115deg,transparent,transparent_4px,var(--color-line)_4px,var(--color-line)_8px)]" />
         ) : (
           <div
-            className={`h-full rounded-full ${barClass}`}
-            style={{ width: `${Math.max(pct, 1.5)}%` }}
+            className={`gauge-bar h-full rounded-full ${barClass}`}
+            style={{ width: `${Math.max(pct, 2)}%` }}
           />
         )}
+      </div>
+
+      {/* Quarter ticks, so a bar can be read as a proportion at a glance. */}
+      <div className="mt-1 flex justify-between" aria-hidden>
+        {[0, 1, 2, 3, 4].map((tick) => (
+          <span key={tick} className="h-1 w-px bg-line-soft" />
+        ))}
       </div>
     </div>
   );

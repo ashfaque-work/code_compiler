@@ -22,6 +22,19 @@ describe("ResultPanel", () => {
     expect(screen.getByText(/nothing has run yet/i)).toBeDefined();
   });
 
+  // The empty panel is the largest surface before a run, so it carries the
+  // constraints rather than a shrug.
+  it("states what the sandbox enforces before anything has run", () => {
+    render(<ResultPanel state={{ phase: "idle" }} />);
+
+    for (const label of ["Network", "Wall clock", "Memory", "Processes"]) {
+      expect(screen.getByText(label)).toBeDefined();
+    }
+    expect(screen.getByText("none")).toBeDefined();
+    expect(screen.getByText("read-only")).toBeDefined();
+    expect(screen.getByText("non-root")).toBeDefined();
+  });
+
   it("distinguishes queued from running", () => {
     const { rerender } = render(
       <ResultPanel state={{ phase: "queued", id: "1" }} />,

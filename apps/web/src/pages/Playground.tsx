@@ -4,7 +4,18 @@ import { fetchLanguages, submitCode, type LanguageInfo } from "../lib/api.js";
 import { isBusy, useSubmission } from "../hooks/useSubmission.js";
 import { Editor } from "../components/Editor.js";
 import { ResultPanel } from "../components/ResultPanel.js";
-import { Shell } from "../components/Shell.js";
+import { Chip, LanguageSelect, RunButton, Shell } from "../components/Shell.js";
+
+/** Filename shown on the editor strip, matching what the runner writes. */
+const SOURCE_FILE: Record<LanguageId, string> = {
+  python: "main.py",
+  javascript: "main.js",
+  typescript: "main.ts",
+  cpp: "main.cpp",
+  java: "Main.java",
+  go: "main.go",
+  rust: "main.rs",
+};
 
 export function Playground() {
   const [languages, setLanguages] = useState<LanguageInfo[]>([]);
@@ -73,59 +84,63 @@ export function Playground() {
     <Shell
       actions={
         <>
-          <label className="sr-only" htmlFor="language">
-            Language
-          </label>
-          <select
-            id="language"
+          <Chip>
+            <span className="size-1 rounded-full bg-status-success" />
+            no network · 5 s · 256 MB
+          </Chip>
+          <LanguageSelect
             value={language}
             disabled={languages.length === 0}
-            onChange={(event) =>
-              switchLanguage(event.target.value as LanguageId)
-            }
-            className="rounded-md border border-line bg-surface px-2.5 py-1.5 text-sm text-ink disabled:opacity-50"
-          >
-            {languages.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.displayName}
-              </option>
-            ))}
-          </select>
-
-          <button
-            type="button"
+            onChange={(next) => switchLanguage(next as LanguageId)}
+            options={languages.map((item) => ({
+              id: item.id,
+              label: item.displayName,
+            }))}
+          />
+          <RunButton
             onClick={handleRun}
+            busy={busy}
             disabled={busy || code.trim() === ""}
-            className="rounded-md bg-action px-3.5 py-1.5 text-sm font-medium text-ground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {busy ? "Running" : "Run"}
-          </button>
+            label="Run"
+            busyLabel="Running"
+          />
         </>
       }
     >
-      <div className="grid h-full min-h-0 grid-cols-1 lg:grid-cols-[1.15fr_1fr]">
-        <section className="flex min-h-0 flex-col border-line lg:border-r">
+      {/* Splits at 900px rather than Tailwind's lg, so a typical laptop window
+          gets the editor and the readout side by side instead of stacking. */}
+      <div className="grid h-full min-h-0 grid-cols-1 min-[900px]:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+        <section className="flex min-h-0 flex-col border-line-soft min-[900px]:border-r">
+          <div className="flex shrink-0 items-center gap-2 border-b border-line-soft px-4 py-2">
+            <span className="font-mono text-[11px] text-muted">
+              {SOURCE_FILE[language]}
+            </span>
+            <span className="h-px flex-1 bg-line-soft" />
+          </div>
+
           <div className="min-h-0 flex-1">
             <Editor language={language} value={code} onChange={setCode} />
           </div>
 
-          <div className="shrink-0 border-t border-line">
+          <div className="shrink-0 border-t border-line-soft">
             <button
               type="button"
               onClick={() => setShowStdin((open) => !open)}
-              className="flex w-full items-center gap-2 px-5 py-2.5 text-left text-sm text-muted hover:text-ink"
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-[13px] text-muted transition-colors hover:text-ink"
               aria-expanded={showStdin}
               aria-controls="stdin"
             >
               <span
                 aria-hidden
-                className={`transition-transform ${showStdin ? "rotate-90" : ""}`}
+                className={`inline-block transition-transform ${showStdin ? "rotate-90" : ""}`}
               >
                 ›
               </span>
               Input
-              {stdin.trim() !== "" && !showStdin && (
-                <span className="text-xs text-action">in use</span>
+              {stdin.trim() !== "" && (
+                <span className="rounded-full bg-action/15 px-2 py-0.5 font-mono text-[10px] text-action">
+                  in use
+                </span>
               )}
             </button>
 
@@ -137,12 +152,12 @@ export function Playground() {
               rows={4}
               spellCheck={false}
               placeholder="Text passed to the program on standard input"
-              className="w-full resize-none border-t border-line bg-surface px-5 py-3 font-mono text-sm text-ink placeholder:text-muted/60 focus:outline-none"
+              className="w-full resize-none border-t border-line-soft bg-surface/60 px-4 py-3 font-mono text-[13px] text-ink placeholder:text-muted/60 focus:outline-none"
             />
           </div>
         </section>
 
-        <section className="min-h-0 overflow-auto border-t border-line lg:border-t-0">
+        <section className="min-h-0 overflow-auto border-t border-line-soft min-[900px]:border-t-0">
           <ResultPanel state={state} />
         </section>
       </div>
