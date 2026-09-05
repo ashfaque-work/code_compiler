@@ -1,0 +1,16 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# Explicit decision per package with an install script, as pnpm 11 requires.
+# The dockerode and bullmq entries are optional native accelerators that fall
+# back to pure JS, so building them is not worth the toolchain requirement.
+allowBuilds:
+  esbuild: true
+  cpu-features: false
+  msgpackr-extract: false
+  protobufjs: false
+  ssh2: false
+
+minimumReleaseAgeExclude:
+  - hono@4.13.7

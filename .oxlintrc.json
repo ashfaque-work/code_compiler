@@ -1,0 +1,38 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "typescript",
+    "unicorn",
+    "oxc",
+    "import"
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "warn"
+  },
+  "env": {
+    "es2024": true,
+    "node": true
+  },
+  "ignorePatterns": [
+    "dist",
+    "node_modules",
+    ".turbo",
+    "client",
+    "server"
+  ],
+  "rules": {
+    "no-await-in-loop": "off"
+  },
+  "overrides": [
+    {
+      "files": [
+        "apps/web/**"
+      ],
+      "rules": {
+        "import/no-unassigned-import": "off"
+      }
+    }
+  ]
+}

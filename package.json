@@ -1,0 +1,23 @@
+{
+  "name": "code-compiler",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "check": "pnpm lint && pnpm typecheck && pnpm test"
+  },
+  "devDependencies": {
+    "oxlint": "^1.81.0",
+    "turbo": "^2.10.12",
+    "typescript": "^7.0.2"
+  }
+}
