@@ -1,0 +1,6 @@
+# Serves both JavaScript and TypeScript. Node strips TypeScript types natively,
+# so no compiler is installed and there is no transpile step.
+FROM node:24-slim
+
+USER 65534:65534
+WORKDIR /sandbox

@@ -1,0 +1,9 @@
+# Execution image: Python only. One toolchain per image keeps cold starts fast
+# and the attack surface small. The original packed twelve toolchains plus the
+# API server into a single ~3 GB image and ran submissions inside it.
+FROM python:3.13-slim
+
+# No package manager, no shell utilities beyond the base. Nothing is installed
+# on top, so there is nothing extra for submitted code to reach for.
+USER 65534:65534
+WORKDIR /sandbox
