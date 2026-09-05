@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+/*
+ * Petrol instrument panel.
+ *
+ * Committed to a single dark treatment rather than a theme toggle: this is a
+ * measurement surface, and the palette carries six status hues that were tuned
+ * against this ground. A light variant would need all six re-picked, and a
+ * half-tuned second theme is worse than one deliberate one.
+ */
+@theme {
+  --color-ground: #0c1519;
+  --color-surface: #12222a;
+  --color-raised: #1a2f38;
+  --color-line: #24404a;
+  --color-ink: #e8f1f3;
+  --color-muted: #86a2ab;
+  --color-action: #45c8dc;
+
+  /* One hue per execution status. The taxonomy is the content, so the
+     palette is content-driven rather than decorative. */
+  --color-status-success: #4fd1a5;
+  --color-status-compile: #ff8a6b;
+  --color-status-runtime: #ff6b8a;
+  --color-status-time: #f2a93b;
+  --color-status-memory: #c79bff;
+  --color-status-internal: #86a2ab;
+
+  --font-sans: "IBM Plex Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Keyboard focus stays visible everywhere; the action hue doubles as the
+   focus colour so it reads consistently. */
+:focus-visible {
+  outline: 2px solid var(--color-action);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* The single orchestrated motion moment: a finished run arriving. */
+@keyframes result-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.result-enter {
+  animation: result-in 220ms ease-out;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-ground);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-line);
+  border-radius: 999px;
+}
