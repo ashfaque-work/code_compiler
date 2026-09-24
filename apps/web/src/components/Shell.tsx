@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { NavLink } from "react-router";
+import { AuthorMark } from "./AuthorMark.js";
 
 interface ShellProps {
   /** Page-specific controls, right-aligned in the header. */
@@ -24,7 +25,21 @@ export function Shell({ actions, children }: ShellProps) {
           <Tab to="/problems">Problems</Tab>
         </nav>
 
-        <div className="ml-auto flex items-center gap-2 sm:gap-2.5">{actions}</div>
+        <div className="ml-auto flex items-center gap-2 sm:gap-2.5">
+          {actions}
+          {/* The maker's credit. This shell is a full-height app layout with no
+              footer, so it sits at the end of the header instead - the mark
+              alone until there is room for the name. */}
+          <a
+            href="https://ashfaqueahmad.com"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="ml-1 hidden items-center gap-1.5 text-xs text-muted transition-colors hover:text-dim sm:inline-flex"
+          >
+            <AuthorMark className="size-4" title="Ashfaque Ahmad" />
+            <span className="hidden lg:inline">built by Ashfaque Ahmad</span>
+          </a>
+        </div>
       </header>
 
       <main className="min-h-0 flex-1">{children}</main>
