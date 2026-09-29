@@ -15,7 +15,7 @@ RUN pnpm install --frozen-lockfile
 COPY packages/ packages/
 COPY apps/runner/ apps/runner/
 RUN pnpm --filter @code-compiler/runner... build && \
-    pnpm deploy --filter @code-compiler/runner --prod /out
+    pnpm deploy --legacy --filter @code-compiler/runner --prod /out
 
 FROM node:24-slim
 

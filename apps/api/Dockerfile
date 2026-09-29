@@ -15,7 +15,7 @@ RUN pnpm install --frozen-lockfile
 COPY packages/ packages/
 COPY apps/api/ apps/api/
 RUN pnpm --filter @code-compiler/api... build && \
-    pnpm deploy --filter @code-compiler/api --prod /out
+    pnpm deploy --legacy --filter @code-compiler/api --prod /out
 
 FROM node:24-slim
 
