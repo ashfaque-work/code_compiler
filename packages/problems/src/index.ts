@@ -3,6 +3,7 @@ import type { Problem } from "./types.js";
 import { twoSum } from "./problems/two-sum.js";
 import { reverseInteger } from "./problems/reverse-integer.js";
 import { searchInsertPosition } from "./problems/search-insert-position.js";
+import { validParentheses } from "./problems/valid-parentheses.js";
 
 export * from "./types.js";
 
@@ -10,6 +11,7 @@ export const PROBLEMS: readonly Problem[] = [
   twoSum,
   reverseInteger,
   searchInsertPosition,
+  validParentheses,
 ];
 
 export function getProblem(slug: string): Problem | undefined {

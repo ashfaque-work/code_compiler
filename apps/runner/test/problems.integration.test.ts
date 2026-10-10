@@ -121,6 +121,42 @@ const target = Number(lines[1]);
 console.log(solve(nums, target));
 `,
   },
+  "valid-parentheses": {
+    python: `import sys
+
+
+def solve(s):
+    pairs = {")": "(", "]": "[", "}": "{"}
+    stack = []
+    for ch in s:
+        if ch in pairs:
+            if not stack or stack.pop() != pairs[ch]:
+                return False
+        else:
+            stack.append(ch)
+    return not stack
+
+
+s = sys.stdin.read().strip()
+print("true" if solve(s) else "false")
+`,
+    javascript: `function solve(s) {
+  const pairs = { ")": "(", "]": "[", "}": "{" };
+  const stack = [];
+  for (const ch of s) {
+    if (ch in pairs) {
+      if (stack.pop() !== pairs[ch]) return false;
+    } else {
+      stack.push(ch);
+    }
+  }
+  return stack.length === 0;
+}
+
+const s = require("fs").readFileSync(0, "utf8").trim();
+console.log(solve(s) ? "true" : "false");
+`,
+  },
 };
 
 describe.runIf(dockerAvailable)("problem contracts", () => {
