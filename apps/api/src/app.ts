@@ -1,4 +1,5 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
+import { getConnInfo } from "@hono/node-server/conninfo";
 import { cors } from "hono/cors";
 import { bodyLimit } from "hono/body-limit";
 import { streamSSE } from "hono/streaming";
@@ -62,7 +63,11 @@ export function createApp(deps: AppDeps): Hono {
 
     const decision = await checkRateLimit(
       rateLimit,
-      clientKey(c.req.header("x-forwarded-for"), c.req.header("x-real-ip")),
+      clientKey(
+        c.req.header("x-forwarded-for"),
+        remoteAddress(c),
+        config.trustProxyHops,
+      ),
       config.rateLimitMax,
       config.rateLimitWindowMs,
     );
@@ -267,13 +272,34 @@ export type { SubmissionStatus };
 /**
  * Identifies the caller for rate limiting.
  *
- * `x-forwarded-for` is only meaningful behind a proxy that sets it; deployments
- * must not expose the API directly if they rely on this.
+ * Each proxy appends the address it received the request from, so only the
+ * right-hand `trustedHops` entries were written by infrastructure. The entry
+ * the outermost trusted proxy added is the client; everything to its left is
+ * caller-controlled. Taking the leftmost entry, as this used to, let anyone
+ * send a fresh `X-Forwarded-For` per request and never be limited.
  */
-function clientKey(
+export function clientKey(
   forwardedFor: string | undefined,
-  realIp: string | undefined,
+  remote: string | undefined,
+  trustedHops: number,
 ): string {
-  const forwarded = forwardedFor?.split(",")[0]?.trim();
-  return forwarded || realIp?.trim() || "unknown";
+  if (trustedHops > 0 && forwardedFor) {
+    const hops = forwardedFor
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0);
+    const client = hops[Math.max(0, hops.length - trustedHops)];
+    if (client) return client;
+  }
+  return remote || "unknown";
+}
+
+/** The socket peer, when the app is served by @hono/node-server. */
+function remoteAddress(c: Context): string | undefined {
+  try {
+    return getConnInfo(c).remote.address;
+  } catch {
+    // app.request() in tests has no socket behind it.
+    return undefined;
+  }
 }
