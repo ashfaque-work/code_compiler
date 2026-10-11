@@ -155,6 +155,16 @@ describe("POST /problems/:slug/submissions", () => {
     expect(response.status).toBe(400);
   });
 
+  // Shares the validation hook with POST /submissions, so the shape matches.
+  it("reports which field failed in the API's error shape", async () => {
+    const response = await solve("two-sum", { language: "python" });
+    const body = (await response.json()) as { error: string; details: unknown };
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Invalid submission");
+    expect(Array.isArray(body.details)).toBe(true);
+  });
+
   it("404s for an unknown problem", async () => {
     const response = await solve("nope", {
       language: "python",

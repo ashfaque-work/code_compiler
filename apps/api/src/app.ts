@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { cors } from "hono/cors";
 import { bodyLimit } from "hono/body-limit";
 import { streamSSE } from "hono/streaming";
@@ -47,11 +47,24 @@ export function createApp(deps: AppDeps): Hono {
     }),
   );
 
-  app.use("/submissions", bodyLimit({ maxSize: config.maxBodyBytes }));
-  app.use(
-    "/problems/:slug/submissions",
-    bodyLimit({ maxSize: config.maxBodyBytes }),
-  );
+  for (const route of SUBMISSION_ROUTES) {
+    app.use(
+      route,
+      bodyLimit({
+        maxSize: config.maxBodyBytes,
+        // The default answers in plain text; every other error here is JSON,
+        // and the client parses error bodies as JSON.
+        onError: (c) =>
+          c.json(
+            {
+              error: "Request body too large",
+              details: { maxBytes: config.maxBodyBytes },
+            },
+            413,
+          ),
+      }),
+    );
+  }
 
   // Applied to every endpoint that costs a container.
   const rateLimitPosts = async (
@@ -81,8 +94,7 @@ export function createApp(deps: AppDeps): Hono {
     return next();
   };
 
-  app.use("/submissions", rateLimitPosts);
-  app.use("/problems/:slug/submissions", rateLimitPosts);
+  for (const route of SUBMISSION_ROUTES) app.use(route, rateLimitPosts);
 
   app.get("/healthz", async (c) => {
     const redisOk = await store.healthy();
@@ -107,15 +119,7 @@ export function createApp(deps: AppDeps): Hono {
 
   app.post(
     "/submissions",
-    zValidator("json", SubmissionRequestSchema, (result, c) => {
-      if (!result.success) {
-        return c.json(
-          { error: "Invalid submission", details: result.error.issues },
-          400,
-        );
-      }
-      return undefined;
-    }),
+    zValidator("json", SubmissionRequestSchema, rejectInvalidSubmission),
     async (c) => {
       const request = c.req.valid("json");
 
@@ -203,15 +207,7 @@ export function createApp(deps: AppDeps): Hono {
 
   app.post(
     "/problems/:slug/submissions",
-    zValidator("json", ProblemSubmissionSchema, (result, c) => {
-      if (!result.success) {
-        return c.json(
-          { error: "Invalid submission", details: result.error.issues },
-          400,
-        );
-      }
-      return undefined;
-    }),
+    zValidator("json", ProblemSubmissionSchema, rejectInvalidSubmission),
     async (c) => {
       const problem = getProblem(c.req.param("slug"));
       if (!problem) {
@@ -263,6 +259,23 @@ export function createApp(deps: AppDeps): Hono {
 }
 
 export type { SubmissionStatus };
+
+/** Both routes that queue a container; they share body, rate and shape limits. */
+const SUBMISSION_ROUTES = ["/submissions", "/problems/:slug/submissions"] as const;
+
+/** Turns a failed body validation into the API's JSON error shape. */
+function rejectInvalidSubmission(
+  result: { success: true } | { success: false; error: { issues: unknown } },
+  c: Context,
+) {
+  if (!result.success) {
+    return c.json(
+      { error: "Invalid submission", details: result.error.issues },
+      400,
+    );
+  }
+  return undefined;
+}
 
 /**
  * Identifies the caller for rate limiting.

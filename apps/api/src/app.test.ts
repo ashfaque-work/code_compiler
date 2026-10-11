@@ -123,6 +123,21 @@ describe("POST /submissions", () => {
     expect(Array.isArray(body.details)).toBe(true);
   });
 
+  it("answers an oversized body with a JSON 413", async () => {
+    const harness = build({ maxBodyBytes: 64 });
+    const response = await post(harness, {
+      language: "python",
+      code: "x".repeat(200),
+    });
+
+    expect(response.status).toBe(413);
+    await expect(response.json()).resolves.toEqual({
+      error: "Request body too large",
+      details: { maxBytes: 64 },
+    });
+    expect(harness.store.seen).toHaveLength(0);
+  });
+
   it("applies schema defaults before queueing", async () => {
     const harness = build();
     await post(harness, validBody);
