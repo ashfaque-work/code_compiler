@@ -227,6 +227,38 @@ describe("rate limiting", () => {
     expect(response.headers.get("x-ratelimit-remaining")).toBe("4");
   });
 
+  const postFrom = (harness: Harness, forwardedFor: string) =>
+    harness.app.request("/submissions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Forwarded-For": forwardedFor,
+      },
+      body: JSON.stringify(validBody),
+    });
+
+  it("ignores X-Forwarded-For when no proxy is trusted", async () => {
+    const harness = build({ rateLimitMax: 1, rateLimitWindowMs: 60_000 });
+
+    expect((await postFrom(harness, "10.0.0.1")).status).toBe(202);
+    // A new spoofed address must not buy a new allowance.
+    expect((await postFrom(harness, "10.0.0.2")).status).toBe(429);
+  });
+
+  it("keys on the address the trusted proxy appended", async () => {
+    const harness = build({
+      rateLimitMax: 1,
+      rateLimitWindowMs: 60_000,
+      trustProxyHops: 1,
+    });
+
+    expect((await postFrom(harness, "1.1.1.1, 203.0.113.7")).status).toBe(202);
+    // Same real client, different caller-written prefix: still limited.
+    expect((await postFrom(harness, "9.9.9.9, 203.0.113.7")).status).toBe(429);
+    // A different real client has its own allowance.
+    expect((await postFrom(harness, "1.1.1.1, 198.51.100.4")).status).toBe(202);
+  });
+
   // Only the endpoint that costs a container is limited.
   it("does not rate limit reads", async () => {
     const harness = build({ rateLimitMax: 1, rateLimitWindowMs: 60_000 });
