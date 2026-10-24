@@ -14,3 +14,11 @@ allowBuilds:
 
 minimumReleaseAgeExclude:
   - hono@4.13.7
+
+# Security floors for transitive packages a parent pins below the fix:
+# monaco-editor pins dompurify exactly; the rest come in through vitest.
+overrides:
+  dompurify@<3.4.17: ^3.4.17
+  undici@>=8.0.0 <8.10.2: ^8.10.2
+  source-map-js@>=1.0.0 <1.2.2: ^1.2.2
+  '@vitest/mocker@>=5.0.0-beta.1 <5.0.3': ^5.0.3
